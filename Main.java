@@ -50,17 +50,18 @@ class Network {
     }
     
     void fpropogate(double[] startVal) {
-        //Basically says take the value in the input layer and progress from layer 0 to layer 1
+        //Basically says take the value in the input layer and progress from layer 0 to layer 1, THEREFORE INTERACT WITH LAYER INDEX 0
         input = startVal;
         progress(input, 0);
         
         for(int i=1; i<input.length; ++i) {
-            progress(wall.get(i).val, i);
+			//Reason for i-1, if you want to progress to the second layer, you need info from the first layer
+            progress(wall.get(i-1).val, i);
         }
     }
     
     void progress(double value[], int curr) {
-        Layer next = wall.get(curr+1);
+        Layer next = wall.get(curr);
         //matrix multiplication
         for(int i=0; i<next.size; ++i) {
             //dot product time
@@ -69,7 +70,6 @@ class Network {
             for(int j=0; j<value.length; ++j) {
                 //retrieve next layer's weight stuff, row is the same 
                 sum+=value[j]*next.weight[i][j];
-                System.out.println("\nasdf"+sum+" "+value[j]+" "+next.weight[i][j]);
             }
             next.val[i] = sum;
         }
@@ -83,16 +83,26 @@ class Network {
             System.out.print(next.val[i]+" ");
         }
         
-        
         //add the biasees
         for(int i=0; i<next.size; ++i) {
             next.val[i] += next.bias[i];
+        }
+        
+        System.out.println("\n AFTER BIAS");
+        for(int i=0; i<next.size; ++i) {
+            System.out.print(next.val[i]+" ");
         }
         
         //feed into activation function
         for(int i=0; i<next.size; ++i) {
             next.val[i] = 1/(1+Math.exp(-next.val[i]));
         }
+        
+         System.out.println("\n AFTER Activate");
+        for(int i=0; i<next.size; ++i) {
+            System.out.print(next.val[i]+" ");
+        }
+        
     }
     
 }
