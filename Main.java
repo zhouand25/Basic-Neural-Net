@@ -1,6 +1,8 @@
 // Online Java Compiler
 // Use this editor to write, compile and run your Java code online
 import java.util.ArrayList;
+
+
 class Network {
     double input[];
     ArrayList<Layer> wall = new ArrayList<Layer>();
@@ -110,6 +112,8 @@ class Network {
     //------------------------------------------------
     
 }
+
+
 class Main {
 	static int[] str = {3, 4, 4, 3};
     static Network c1 = new Network(str);
@@ -154,26 +158,50 @@ class Main {
 			//We first modfiy every single weight value
 			for(int j=0; j<c1.wall.get(i).size; ++j) {
 				for(int k=0; k<c1.wall.get(i).prev_size; ++k) {
-				   //perturb the weight in question by 0.1
-				   c1.wall.get(i).weight[j][k] += 0.05;	
-				   c1.propogate(test);
-				   double dif = c1.error(ans);
+				   //perturb the weight in question by 0.01
+				   c1.wall.get(i).weight[j][k] += 0.0000001;	
+				   c1.fpropogate(test);
+				   double dif1 = c1.error(ans);
+				   c1.wall.get(i).weight[j][k] -= 0.0000002;
+				   c1.fpropogate(test);
+				   double dif2 = c1.error(ans);
 				   //We compute the finite difference and store it in the gradient object
-				   storage.wall.get(i).weight[j][k] = (dif - error)/0.05;
+				   storage.wall.get(i).weight[j][k] = (dif1 - dif2)/0.0000002;
 				   //We restore the c1 object to its original form
-				   c1.wall.get(i).weight[j][k] -= 0.05;	
+				   c1.wall.get(i).weight[j][k] += 0.0000001;	
 				}
 			}
 			
 			//We now modify biases
 			for(int m=0; m<c1.wall.get(i).size; ++m) {
-				c1.wall.get(i).bias[m] += 0.05;
-				c1.propogate(test);
-				double dif = c1.error(ans);
-				storage.wall.get(i).bias[m] = (dif - error)/0.05;
-				c1.wall.get(i).bias[m] -= 0.05;
+				c1.wall.get(i).bias[m] += 0.0000001;
+				c1.fpropogate(test);
+				double dif1 = c1.error(ans);
+				c1.wall.get(i).bias[m] -= 0.0000002;
+				c1.fpropogate(test);
+				double dif2 = c1.error(ans);
+				storage.wall.get(i).bias[m] = (dif1 - dif2)/0.0000002;
+				c1.wall.get(i).bias[m] += 0.0000001;
 			}
 		}
 		
+		System.out.println("\n\n\nGRADIENTS");
+		for(int i=0; i<storage.wall.size(); ++i) {
+         System.out.println("H Layer");
+         for(int j=0; j<storage.wall.get(i).weight.length; ++j) {
+             for(int k=0; k<storage.wall.get(i).weight[0].length; ++k) {
+                 System.out.print(storage.wall.get(i).weight[j][k]+" ");
+             }
+             System.out.println("");
+         }
+         System.out.println("\n Bias");
+          //biases
+          for(int m=0; m<storage.wall.get(i).size; ++m) {
+              System.out.print(storage.wall.get(i).bias[m]+" ");
+          }
+          System.out.println("\n\n\n");
+        }
+		
+
 	}
 }
