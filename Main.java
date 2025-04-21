@@ -44,3 +44,34 @@ class Network {
             progress(wall.get(i).val, i);
         }
     }
+    
+    void progress(int value[], curr) {
+        Layer next = wall.get(curr+1);
+        //matrix multiplication
+        for(int i=0; i<next.size; ++i) {
+            //dot product time
+            //Each loop is for one element of the array
+            int sum=0;
+            for(int j=0; j<value.length; ++j) {
+                //retrieve next layer's weight stuff, row is the same 
+                sum+=value[j]*next.weight[i][j];
+            }
+            next.val[i] = sum;
+        }
+        
+        //add the biasees
+        for(int i=0; i<next.size; ++i) {
+            val[i] += bias[i];
+        }
+        
+        //feed into activation function
+        
+    }
+    
+}
+class Main {
+    public static void main(String[] args) {
+        int[] str = {3, 4, 4, 3};
+        Network c1 = new Network(str);
+    }
+}
