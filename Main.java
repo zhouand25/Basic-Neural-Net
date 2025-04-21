@@ -49,6 +49,8 @@ class Network {
         }
     }
     
+    //-----------------------------------------------------
+    
     void fpropogate(double[] startVal) {
         //Basically says take the value in the input layer and progress from layer 0 to layer 1, THEREFORE INTERACT WITH LAYER INDEX 0
         input = startVal;
@@ -74,44 +76,54 @@ class Network {
             next.val[i] = sum;
         }
         
-        System.out.println("\n\nAt first");
-        for(int i=0; i<value.length; ++i) {
-            System.out.print(value[i]+" ");
-        }
-        System.out.println("\n AFTER WEIGHT MULTIPLICATION");
-        for(int i=0; i<next.size; ++i) {
-            System.out.print(next.val[i]+" ");
-        }
-        
         //add the biasees
         for(int i=0; i<next.size; ++i) {
             next.val[i] += next.bias[i];
         }
         
-        System.out.println("\n AFTER BIAS");
-        for(int i=0; i<next.size; ++i) {
-            System.out.print(next.val[i]+" ");
-        }
         
         //feed into activation function
         for(int i=0; i<next.size; ++i) {
             next.val[i] = 1/(1+Math.exp(-next.val[i]));
         }
         
-         System.out.println("\n AFTER Activate");
-        for(int i=0; i<next.size; ++i) {
-            System.out.print(next.val[i]+" ");
-        }
-        
     }
+    
+    double error(int index) {
+		System.out.println("\nFINAL DISTRIBUTION: ");
+        Layer last = wall.get(wall.size()-1);
+        for(int i=0; i<last.val.length; ++i) {
+			System.out.print(last.val[i]+" ");
+		}
+		double sum=0;
+		for(int i=0; i<last.val.length; ++i) {
+			if(i == index) {
+				sum+=Math.pow((1 - last.val[i]), 2);
+				continue;
+			}
+			sum+=Math.pow(last.val[i], 2);
+		}
+		sum = sum/last.val.length;
+		return sum;
+	}
+    
+    //------------------------------------------------
     
 }
 class Main {
-    public static void main(String[] args) {
-        int[] str = {3, 4, 4, 3};
-        Network c1 = new Network(str);
-        
-        //Print demon DEBUG TIME
+	static int[] str = {3, 4, 4, 3};
+    static Network c1 = new Network(str);
+    static Network storage = new Network(str);
+    
+    public static void main(String[] args) {    
+        double[] test = {0.2, 0.3, 0.4};
+		//by index
+        int id = 2;
+        calibrate(test, id);
+    }
+    
+    public static void calibrate(double[] test, int ans) {
+		//Print demon DEBUG TIME
         //PRINT ALL WEIGHTS AND BIASES FIRST
         
         for(int i=0; i<c1.wall.size(); ++i) {
@@ -130,8 +142,38 @@ class Main {
           System.out.println("\n\n\n");
         }
         
-        double[] test = {0.2, 0.3, 0.4};
+        //THIS IS THE MODEL
         c1.fpropogate(test);
-        
-    }
+        double error = c1.error(ans);
+		
+		//NOW TIME FOR ACTUAL STUFF, CHANGING EACH ONE
+		//Note we will modify original but then restore it
+		
+	
+		for(int i=0; i<c1.wall.size(); ++i) {
+			//We first modfiy every single weight value
+			for(int j=0; j<c1.wall.get(i).size; ++j) {
+				for(int k=0; k<c1.wall.get(i).prev_size; ++k) {
+				   //perturb the weight in question by 0.1
+				   c1.wall.get(i).weight[j][k] += 0.05;	
+				   c1.propogate(test);
+				   double dif = c1.error(ans);
+				   //We compute the finite difference and store it in the gradient object
+				   storage.wall.get(i).weight[j][k] = (dif - error)/0.05;
+				   //We restore the c1 object to its original form
+				   c1.wall.get(i).weight[j][k] -= 0.05;	
+				}
+			}
+			
+			//We now modify biases
+			for(int m=0; m<c1.wall.get(i).size; ++m) {
+				c1.wall.get(i).bias[m] += 0.05;
+				c1.propogate(test);
+				double dif = c1.error(ans);
+				storage.wall.get(i).bias[m] = (dif - error)/0.05;
+				c1.wall.get(i).bias[m] -= 0.05;
+			}
+		}
+		
+	}
 }
